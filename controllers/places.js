@@ -3,14 +3,19 @@ const Place = require('../models/Place')
 const {StatusCodes} = require('http-status-codes')
 
 const createPlace = async (req, res) => {
-    req.body.createdBy = req.user.userId
+    // fetch it from the authMiddlware
+    req.body.createdById = req.user.userId
+    req.body.createdByName = req.user.name
+    if (req.file) {
+        req.body.image = req.file.filename
+    }
     const place = await Place.create(req.body)
     res.status(StatusCodes.CREATED).json({ place })
 }
 
 const getAllPlaces = async (req, res) => {
-    const places = await Place.find({createdBy: req.user.userId}).sort('createdAt')
-    res.status(StatusCodes.OK).json({places, count: places.length})
+    const places = await Place.find().sort('-createdAt')
+    res.status(StatusCodes.OK).json({places, count: places.length, user: req.user.userId})
 }
 
 const getPlace = async (req, res) => {

@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const uploadImage = require('../middleware/upload')
 
 const {
     createPlace,
@@ -9,7 +10,7 @@ const {
     deletePlace
 } = require('../controllers/places')
 
-router.route('/').post(createPlace).get(getAllPlaces)
+router.route('/').post(uploadImage,createPlace).get(getAllPlaces)
 
 router.route('/:id').get(getPlace).patch(updatePlace).delete(deletePlace)
 

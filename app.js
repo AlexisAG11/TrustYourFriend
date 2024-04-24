@@ -9,6 +9,15 @@ const app = express()
 const connectDB = require('./db/connect')
 const authenticateUser = require('./middleware/authentication')
 
+// allows cors
+const cors=require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true,            //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
+app.use(cors(corsOptions)) // Use this after the variable declaration
+
 // routers
 const authRouter = require('./routes/auth')
 const placesRouter = require('./routes/places')
@@ -19,7 +28,7 @@ const notFoundMiddleware = require('./middleware/not-found')
 const errorHandlerMiddleware = require('./middleware/error-handler')
 
 app.use(express.json())
-
+app.use('/uploads', express.static('uploads'))
 // routes
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/places', authenticateUser, placesRouter)
