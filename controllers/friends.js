@@ -4,17 +4,19 @@ const {BadRequestError, UnauthenticatedError, NotFoundError} = require('../error
 
 const addFriend = async (req, res) => {
     const {
-        body: {friendId},
+        body: {friendEmail},
         user:{userId}
     } = req
 
-    if (!friendId ||friendId === '') {
-        throw new BadRequestError('friendId cannot be empty')
+    if (!friendEmail ||friendEmail === '') {
+        throw new BadRequestError('friendEmail cannot be empty')
     }
-    const friendUser = await User.findById(friendId)
+    const friendUser = await User.findOne({'email': friendEmail});
+    
     if (!friendUser) {
-        throw new NotFoundError(`No User with this id : ${friendId}`)
+        throw new NotFoundError(`No User with this email : ${friendEmail}`)
     }
+    const friendId = friendUser._id.toString();
     const user = await User.findByIdAndUpdate({_id:userId},
         { $addToSet: {friends: {_id: friendId, name: friendUser.name} }},
         {new: true, runValidators: true}
@@ -27,17 +29,19 @@ const addFriend = async (req, res) => {
 
 const deleteFriend = async (req, res) => {
     const {
-        body: {friendId},
+        body: {friendEmail},
         user:{userId}
     } = req
 
-    if (!friendId ||friendId === '') {
-        throw new BadRequestError('friendId cannot be empty')
+    if (!friendEmail ||friendEmail === '') {
+        throw new BadRequestError('friendEmail cannot be empty')
     }
-    const friendUser = await User.findById(friendId)
+    const friendUser = await User.findOne({'email': friendEmail})
     if (!friendUser) {
-        throw new NotFoundError(`No User with this id : ${friendId}`)
+        throw new NotFoundError(`No User with this email : ${friendEmail}`)
     }
+    
+    const friendId = friendUser._id.toString();
     const user = await User.findByIdAndUpdate({_id:userId},
         { $pull: {friends: {_id: friendId}}},
         {new: true, runValidators: true}
