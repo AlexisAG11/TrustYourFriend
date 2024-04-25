@@ -24,7 +24,10 @@ const UserSchema = new mongoose.Schema({
         minlength:6
     },
     friends: {
-        type:[mongoose.Schema.Types.ObjectId],
+        type: [{
+            _id: { type: mongoose.Types.ObjectId},
+            name: { type: String }
+        }],
         default: []
     }
 })

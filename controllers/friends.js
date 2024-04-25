@@ -16,7 +16,7 @@ const addFriend = async (req, res) => {
         throw new NotFoundError(`No User with this id : ${friendId}`)
     }
     const user = await User.findByIdAndUpdate({_id:userId},
-        { $addToSet: {friends: friendId}},
+        { $addToSet: {friends: {_id: friendId, name: friendUser.name} }},
         {new: true, runValidators: true}
     )
     if (!user) {
@@ -39,7 +39,7 @@ const deleteFriend = async (req, res) => {
         throw new NotFoundError(`No User with this id : ${friendId}`)
     }
     const user = await User.findByIdAndUpdate({_id:userId},
-        { $pull: {friends: friendId}},
+        { $pull: {friends: {_id: friendId}}},
         {new: true, runValidators: true}
     )
     if (!user) {
@@ -48,8 +48,18 @@ const deleteFriend = async (req, res) => {
     res.status(StatusCodes.OK).json(user)
 }
 
+const getAllFriend = async (req,res) => {
+    const user = await User.findById(req.user.userId)
+    res.status(StatusCodes.OK).json({friends: user.friends, count: user.friends.length, userId: req.user.userId, userName: req.user.name})
+
+}
+
+const getUserName = async (req, res) => {
+    req
+}
+
 module.exports = {
     addFriend,
-    deleteFriend
-
+    deleteFriend,
+    getAllFriend
 }
