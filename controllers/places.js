@@ -1,5 +1,6 @@
 const { NotFoundError, BadRequestError } = require('../errors')
 const Place = require('../models/Place')
+const User = require('../models/User')
 const {StatusCodes} = require('http-status-codes')
 
 const createPlace = async (req, res) => {
@@ -14,7 +15,11 @@ const createPlace = async (req, res) => {
 }
 
 const getAllPlaces = async (req, res) => {
-    const places = await Place.find().sort('-createdAt')
+    const userActive = await User.findById(req.user.userId);
+    const userIds = userActive.friends
+    const userIdsMaj = userIds.map(user => user._id); // Extracting just the ObjectIds
+    userIdsMaj.push(userActive._id);
+    const places = await Place.find({ createdById: { $in: userIdsMaj } }).sort('-createdAt')
     res.status(StatusCodes.OK).json({places, count: places.length, user: req.user.userId})
 }
 

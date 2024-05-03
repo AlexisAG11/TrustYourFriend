@@ -14,40 +14,31 @@ const addFriend = async (req, res) => {
     const friendUser = await User.findOne({'email': friendEmail});
     
     if (!friendUser) {
-        throw new NotFoundError(`No User with this email : ${friendEmail}`)
+        throw new NotFoundError(`Pas d'utilisateur avec cet email : ${friendEmail}`)
     }
     const friendId = friendUser._id.toString();
     const user = await User.findByIdAndUpdate({_id:userId},
         { $addToSet: {friends: {_id: friendId, name: friendUser.name} }},
         {new: true, runValidators: true}
     )
-    if (!user) {
-        throw new NotFoundError(`No place with this id : ${placeId}`)
-    }
     res.status(StatusCodes.OK).json(user)
 }
 
 const deleteFriend = async (req, res) => {
     const {
-        body: {friendEmail},
+        body: {friendId},
         user:{userId}
     } = req
 
-    if (!friendEmail ||friendEmail === '') {
-        throw new BadRequestError('friendEmail cannot be empty')
+    if (!friendId ||friendId === '') {
+        throw new BadRequestError('cannot be empty')
     }
-    const friendUser = await User.findOne({'email': friendEmail})
-    if (!friendUser) {
-        throw new NotFoundError(`No User with this email : ${friendEmail}`)
-    }
-    
-    const friendId = friendUser._id.toString();
     const user = await User.findByIdAndUpdate({_id:userId},
         { $pull: {friends: {_id: friendId}}},
         {new: true, runValidators: true}
     )
     if (!user) {
-        throw new NotFoundError(`No place with this id : ${placeId}`)
+        throw new NotFoundError(`No user with this id : ${placeId}`)
     }
     res.status(StatusCodes.OK).json(user)
 }
