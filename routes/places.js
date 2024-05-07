@@ -7,11 +7,12 @@ const {
     getAllPlaces,
     getPlace,
     updatePlace,
-    deletePlace
+    deletePlace,
+    getAllPlacesFilterByName
 } = require('../controllers/places')
 
 router.route('/').post(uploadImage,createPlace).get(getAllPlaces)
 
-router.route('/:id').get(getPlace).patch(updatePlace).delete(deletePlace)
+router.route('/:id').get(getPlace).patch(uploadImage,updatePlace).delete(deletePlace)
 
 module.exports = router
