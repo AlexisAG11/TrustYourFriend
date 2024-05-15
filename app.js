@@ -22,6 +22,7 @@ app.use(cors(corsOptions)) // Use this after the variable declaration
 const authRouter = require('./routes/auth')
 const placesRouter = require('./routes/places')
 const friendsRouter = require('./routes/friends')
+const addressesRouter = require('./routes/addresses')
 
 // error handler
 const notFoundMiddleware = require('./middleware/not-found')
@@ -33,6 +34,7 @@ app.use('/uploads', express.static('uploads'))
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/places', authenticateUser, placesRouter)
 app.use('/api/v1/friends', authenticateUser, friendsRouter)
+app.use('/api/v1/addresses', authenticateUser, addressesRouter)
 
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)
