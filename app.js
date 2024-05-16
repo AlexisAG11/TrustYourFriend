@@ -23,6 +23,7 @@ const authRouter = require('./routes/auth')
 const placesRouter = require('./routes/places')
 const friendsRouter = require('./routes/friends')
 const addressesRouter = require('./routes/addresses')
+const typesRouter = require('./routes/types')
 
 // error handler
 const notFoundMiddleware = require('./middleware/not-found')
@@ -35,6 +36,7 @@ app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/places', authenticateUser, placesRouter)
 app.use('/api/v1/friends', authenticateUser, friendsRouter)
 app.use('/api/v1/addresses', authenticateUser, addressesRouter)
+app.use('/api/v1/types', authenticateUser, typesRouter)
 
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)
