@@ -5,10 +5,6 @@ const AddressSchema = new mongoose.Schema({
         type: String,
         require: [true, 'Please provide a name'],
         maxlength:50
-    },
-    checkboxFilled: {
-        type: Boolean,
-        default: false
     }
 }, {timestamps: true})
 
