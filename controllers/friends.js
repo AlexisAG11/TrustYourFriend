@@ -84,8 +84,8 @@ const deleteFriend = async (req, res) => {
 }
 
 const getAllFriend = async (req,res) => {
-    const user = await User.findById(req.user.userId)
-    res.status(StatusCodes.OK).json({friends: user.friends, count: user.friends.length, userId: req.user.userId, userName: req.user.name})
+    const user = await User.findById(req.user.userId);
+    res.status(StatusCodes.OK).json({friends: user.friends, sentFriendRequests: user.sentFriendRequests, receivedFriendRequests: user.receivedFriendRequests, count: user.friends.length, userId: req.user.userId, userName: req.user.name})
 
 }
 

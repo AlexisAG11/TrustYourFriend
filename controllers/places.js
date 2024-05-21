@@ -8,8 +8,6 @@ const createPlace = async (req, res) => {
     // fetch it from the authMiddlware
     req.body.createdById = req.user.userId
     req.body.createdByName = req.user.name
-    console.log(req.file)
-    console.log(req.body)
     if (req.file) {
         req.body.image = req.file.filename
     }
