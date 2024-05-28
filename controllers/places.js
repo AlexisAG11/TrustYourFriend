@@ -3,13 +3,46 @@ const Place = require('../models/Place')
 const User = require('../models/User')
 const {StatusCodes} = require('http-status-codes')
 const mongoose = require('mongoose');
+require('dotenv').config()
+
+// AWS Bucket
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+const awsBucketName = process.env.AWS_BUCKET_NAME
+const awsBucketRegion = process.env.AWS_BUCKET_REGION
+const accessKey = process.env.ACCESS_KEY
+const secretAccessKey = process.env.SECRET_ACCESS_KEY
+
+const s3 = new S3Client({
+    credentials: {
+        accessKeyId: accessKey,
+        secretAccessKey: secretAccessKey,
+    },
+    region: awsBucketRegion
+})
+
+// crypto
+const crypto = require('crypto')
+const randomImageName = (bytes = 32) => crypto.randomBytes(bytes).toString('hex');
+const defaultPhoto = ["japonais-defaut.avif","italien-defaut.avif","français-defaut.avif","chinoise-defaut.avif","mexicain-defaut.avif","libanais-defaut.avif","bar-defaut.avif","brunch-defaut.avif","americain-defaut.avif","image-preview-icon-picture-placeholder-vector-31284806.jpg"];
 
 const createPlace = async (req, res) => {
     // fetch it from the authMiddlware
     req.body.createdById = req.user.userId
     req.body.createdByName = req.user.name
     if (req.file) {
-        req.body.image = req.file.filename
+        const imageName = randomImageName();
+        req.body.image = imageName;
+
+        const params = {
+            Bucket: awsBucketName,
+            Key: imageName,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype
+        }
+        const command = new PutObjectCommand(params);
+        await s3.send(command)
     }
     else {
         // default food photo
@@ -96,12 +129,34 @@ const getAllPlaces = async (req, res) => {
             filterAddressName = filterAddress;
         }
     }
+
     const places = await Place.find({ 
         createdById: { $in: filterCreatedByValue },
         type: { $in: filterTypeName},
         address: {$in: filterAddressName}
     }).sort('-createdAt')
-    res.status(StatusCodes.OK).json({places, count: places.length, user: req.user.userId})
+
+    // retrieve the image from S3 bucket and made it accessible with a temprary link
+    const modifiedPlaces = [];
+    for (const place of places) {
+        if (defaultPhoto.includes(place.image)) {
+            const placeObj = place.toObject();
+            placeObj.imageUrl = process.env.BACK_URL +'/uploads/'+ place.image;
+            modifiedPlaces.push(placeObj);
+        }
+        else {
+            const getObjectParams = {
+                Bucket: awsBucketName,
+                Key: place.image
+            }
+            const command = new GetObjectCommand(getObjectParams);
+            const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+            const placeObj = place.toObject();
+            placeObj.imageUrl = url;
+            modifiedPlaces.push(placeObj);
+        }
+    }
+    res.status(StatusCodes.OK).json({modifiedPlaces, count: places.length, user: req.user.userId})
 }
 
 const getPlace = async (req, res) => {
@@ -116,15 +171,6 @@ const getPlace = async (req, res) => {
     res.status(StatusCodes.OK).json({place})
 }
 
-const getAllPlacesFilterByName = async (req, res) => {
-    const userActive = await User.findById(req.user.userId);
-    const userIds = userActive.friends
-    const userIdsMaj = userIds.map(user => user._id); // Extracting just the ObjectIds
-    userIdsMaj.push(userActive._id);
-    const places = await Place.find({ createdById: { $in: userIdsMaj } }).sort('-createdAt')
-    res.status(StatusCodes.OK).json({places, count: places.length, user: req.user.userId})
-}
-
 const updatePlace = async (req, res) => {
     const {
         body: {name, address},
@@ -137,7 +183,17 @@ const updatePlace = async (req, res) => {
     }
 
     if (req.file) {
-        req.body.image = req.file.filename
+        const imageName = randomImageName();
+        req.body.image = imageName;
+
+        const params = {
+            Bucket: awsBucketName,
+            Key: imageName,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype
+        }
+        const command = new PutObjectCommand(params);
+        await s3.send(command)
     }
     const place = await Place.findByIdAndUpdate({_id:placeId, createdBy:userId},
         req.body,
@@ -159,6 +215,14 @@ const deletePlace = async (req,res) => {
     if (!place) {
         throw new NotFoundError(`No place with id ${placeId}`)
     }
+    if (!defaultPhoto.includes(place.image)) {
+        const params = {
+            Bucket: awsBucketName,
+            Key: place.image
+        }
+        const command = new DeleteObjectCommand(params)
+        await s3.send(command);
+    }
     res.status(StatusCodes.OK).send()
 }
 
@@ -167,6 +231,5 @@ module.exports = {
     getAllPlaces,
     getPlace,
     updatePlace,
-    deletePlace,
-    getAllPlacesFilterByName
+    deletePlace
 }
