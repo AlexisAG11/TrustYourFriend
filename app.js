@@ -37,10 +37,11 @@ app.use(rateLimiter({
 }))
 app.use(express.json())
 app.use(helmet())
-app.use(cors({
-    credentials: true,
-    origin: 'http://localhost:4200'
-  }));
+app.use(cors());
+// app.use(cors({
+//     credentials: true,
+//     origin: 'http://localhost:4200'
+//   }));
 app.use(xss())
 
 app.use('/uploads', express.static('uploads'))
