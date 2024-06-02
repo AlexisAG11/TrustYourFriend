@@ -9,14 +9,11 @@ const app = express()
 const connectDB = require('./db/connect')
 const authenticateUser = require('./middleware/authentication')
 
-// allows cors
-const cors=require("cors");
-const corsOptions ={
-   origin:'*', 
-   credentials:true,            //access-control-allow-credentials:true
-   optionSuccessStatus:200,
-}
-app.use(cors(corsOptions)) // Use this after the variable declaration
+// extra security packages
+const helmet = require('helmet')
+const xss = require('xss-clean')
+const rateLimiter = require('express-rate-limit')
+const cors = require('cors');
 
 // routers
 const authRouter = require('./routes/auth')
@@ -29,7 +26,23 @@ const typesRouter = require('./routes/types')
 const notFoundMiddleware = require('./middleware/not-found')
 const errorHandlerMiddleware = require('./middleware/error-handler')
 
+// security
+ 
+app.use(rateLimiter({
+    windowMs: 2 * 60 * 1000, // 2 minutes
+    limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    // store: ... , // Redis, Memcached, etc. See below.
+}))
 app.use(express.json())
+app.use(helmet())
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:4200'
+  }));
+app.use(xss())
+
 app.use('/uploads', express.static('uploads'))
 // routes
 app.use('/api/v1/auth', authRouter)

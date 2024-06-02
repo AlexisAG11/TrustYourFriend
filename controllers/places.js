@@ -25,7 +25,7 @@ const s3 = new S3Client({
 // crypto
 const crypto = require('crypto')
 const randomImageName = (bytes = 32) => crypto.randomBytes(bytes).toString('hex');
-const defaultPhoto = ["japonais-defaut.avif","italien-defaut.avif","français-defaut.avif","chinoise-defaut.avif","mexicain-defaut.avif","libanais-defaut.avif","bar-defaut.avif","brunch-defaut.avif","americain-defaut.avif","image-preview-icon-picture-placeholder-vector-31284806.jpg"];
+const defaultPhoto = ["japonais-defaut.avif","italien-defaut.avif","français-defaut.avif","chinois-defaut.avif","mexicain-defaut.avif","libanais-defaut.avif","bar-defaut.avif","brunch-defaut.avif","americain-defaut.avif","café-defaut.avif","crêperie-defaut.jpg", "image-preview-icon-picture-placeholder-vector-31284806.jpg"];
 
 const createPlace = async (req, res) => {
     // fetch it from the authMiddlware
@@ -56,8 +56,8 @@ const createPlace = async (req, res) => {
             case 'Français':
                 req.body.image = "français-defaut.avif";
                 break;
-            case 'Chinoise':
-                req.body.image = "chinoise-defaut.avif";
+            case 'Chinois':
+                req.body.image = "chinois-defaut.avif";
                 break;
             case 'Mexicain':
                 req.body.image = "mexicain-defaut.avif";
@@ -74,7 +74,12 @@ const createPlace = async (req, res) => {
             case 'Americain':
                 req.body.image = "americain-defaut.avif";
                 break;
-
+            case 'Café':
+                req.body.image = "café-defaut.avif";
+                break;
+            case 'Crêperie':
+                req.body.image = "crêperie-defaut.jpg";
+                break;
           }
     }
     const place = await Place.create(req.body)
@@ -138,23 +143,16 @@ const getAllPlaces = async (req, res) => {
 
     // retrieve the image from S3 bucket and made it accessible with a temprary link
     const modifiedPlaces = [];
-    for (const place of places) {
-        if (defaultPhoto.includes(place.image)) {
-            const placeObj = place.toObject();
-            placeObj.imageUrl = process.env.BACK_URL +'/uploads/'+ place.image;
-            modifiedPlaces.push(placeObj);
+    for (const place of places) { 
+        const getObjectParams = {
+            Bucket: awsBucketName,
+            Key: place.image
         }
-        else {
-            const getObjectParams = {
-                Bucket: awsBucketName,
-                Key: place.image
-            }
-            const command = new GetObjectCommand(getObjectParams);
-            const url = await getSignedUrl(s3, command, { expiresIn: 60 });
-            const placeObj = place.toObject();
-            placeObj.imageUrl = url;
-            modifiedPlaces.push(placeObj);
-        }
+        const command = new GetObjectCommand(getObjectParams);
+        const url = await getSignedUrl(s3, command, { expiresIn: 60 });
+        const placeObj = place.toObject();
+        placeObj.imageUrl = url;
+        modifiedPlaces.push(placeObj);
     }
     res.status(StatusCodes.OK).json({modifiedPlaces, count: places.length, user: req.user.userId})
 }
