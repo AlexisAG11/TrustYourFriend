@@ -39,7 +39,8 @@ app.use(express.json())
 app.use(helmet())
 app.use(cors({
     credentials: true,
-    origin: 'https://trustyourfriend-front.onrender.com'
+    origin: 'https://trustyourfriend-front.onrender.com',
+    validate: {xForwardedForHeader: false}
   }));
 app.use(xss())
 
