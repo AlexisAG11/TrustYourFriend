@@ -33,14 +33,14 @@ app.use(rateLimiter({
     limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    validate: {xForwardedForHeader: false}
     // store: ... , // Redis, Memcached, etc. See below.
 }))
 app.use(express.json())
 app.use(helmet())
 app.use(cors({
     credentials: true,
-    origin: 'https://trustyourfriend-front.onrender.com',
-    validate: {xForwardedForHeader: false}
+    origin: 'https://trustyourfriend-front.onrender.com'
   }));
 app.use(xss())
 
