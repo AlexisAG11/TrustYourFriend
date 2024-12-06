@@ -35,6 +35,14 @@ const PlaceSchema = new mongoose.Schema({
         maxlength: 300,
         default: ""
     },
+    fullAddress: {
+        type: String,
+        maxlength: 100
+    },
+    linkAddress: {
+        type: String,
+        maxlength: 100
+    },
 }, {timestamps: true})
 
 module.exports = mongoose.model('Place', PlaceSchema)
