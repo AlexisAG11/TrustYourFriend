@@ -1,4 +1,4 @@
-# TyfAngular
+# TrustYourFriend
 
 ## What is it ?
 
